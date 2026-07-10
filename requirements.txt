@@ -7,7 +7,7 @@ numpy>=1.24.0
 # Audio
 pyttsx3>=2.90
 SpeechRecognition>=3.10.0
-pyaudio>=0.2.13
+
 
 # Translation
 deep-translator>=1.11.0
