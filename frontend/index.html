@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DualTalk - Real-Time Sign Language Communication</title>
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+  <header>
+    <div class="logo">Dual<span>Talk</span></div>
+    <div id="statusPill" class="status-pill offline">
+      <span class="dot"></span>
+      <span id="statusText">Not connected</span>
+    </div>
+  </header>
+
+  <div id="lobby">
+    <div class="lobby-card">
+      <div class="lobby-icon">&#x1F91F;</div>
+      <h1>Join a DualTalk Room</h1>
+      <p>Connect with another person using a room code. Choose your role - signer or receiver.</p>
+
+      <div class="role-select">
+        <button class="role-btn active" id="roleSignerBtn" type="button">
+          <span class="role-icon">&#x1F91F;</span>
+          Signer
+          <div class="role-copy">I sign - AI translates</div>
+        </button>
+        <button class="role-btn" id="roleReceiverBtn" type="button">
+          <span class="role-icon">&#x1F442;</span>
+          Receiver
+          <div class="role-copy">I hear the translation</div>
+        </button>
+      </div>
+
+      <div class="input-group">
+        <input type="text" id="roomInput" placeholder="Enter room code (e.g. DT-4821)" maxlength="10">
+      </div>
+
+      <button class="btn btn-primary" id="joinRoomBtn" type="button">Join Room &rarr;</button>
+
+      <div class="divider">or</div>
+
+      <button class="btn btn-secondary" id="createRoomBtn" type="button">Create New Room</button>
+    </div>
+  </div>
+
+  <div id="room">
+    <div class="room-header">
+      <div class="room-header-group">
+        <div class="logo room-logo">Dual<span>Talk</span></div>
+        <button class="room-code-badge" id="roomCodeBadge" type="button" title="Click to copy">
+          &#x1F511; <span id="roomCodeDisplay">----</span>
+          <span class="copy-icon">&#x2398;</span>
+        </button>
+      </div>
+      <div class="controls">
+        <button class="ctrl-btn" id="speechBtn" type="button">Speech</button>
+        <button class="ctrl-btn active" id="camBtn" type="button">Camera</button>
+        <button class="ctrl-btn active" id="aiBtn" type="button">AI On</button>
+        <button class="ctrl-btn leave" id="leaveBtn" type="button">Leave</button>
+      </div>
+    </div>
+
+    <div class="room-body">
+      <div class="camera-panel">
+        <div class="cameras-grid">
+          <div class="camera-box" id="myBox">
+            <img class="camera-stream" id="myVideo" alt="Local camera feed">
+            <div class="camera-label" id="myLabel">You</div>
+            <div class="camera-role-tag" id="myRoleTag">Signer</div>
+            <div class="no-camera" id="noCamMsg">
+              <span class="cam-icon">&#x1F4F7;</span>
+              <span id="localCameraStatus">Camera off</span>
+            </div>
+          </div>
+
+          <div class="camera-box" id="remoteBox">
+            <img class="camera-stream" id="remoteVideo" alt="Remote camera feed">
+            <div class="camera-label" id="remoteLabel">Other User</div>
+            <div class="camera-role-tag tag-receiver" id="remoteRoleTag">Receiver</div>
+            <div class="no-camera" id="waitingMsg">
+              <span class="cam-icon">&#x1F464;</span>
+              <span id="remoteCameraStatus">Waiting for other user...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="translation-bar">
+          <div class="translation-label">&#x1F91F; Translating</div>
+          <div class="translation-flow">
+            <div class="translation-step">
+              <span class="step-title">Gesture</span>
+              <span class="step-value" id="gestureOutput">-</span>
+            </div>
+            <div class="translation-arrow">&darr;</div>
+            <div class="translation-step">
+              <span class="step-title">Intent</span>
+              <span class="step-value" id="intentOutput">-</span>
+            </div>
+            <div class="translation-arrow">&darr;</div>
+            <div class="translation-step">
+              <span class="step-title">Sentence</span>
+              <span class="step-value" id="sentenceOutput">Gesture recognition active - start signing...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-panel">
+        <div class="chat-header">&#x1F4AC; Messages</div>
+        <div class="messages" id="messages">
+          <div class="empty-messages" id="emptyMsg">
+            <span class="empty-icon">&#x1F4AC;</span>
+            Messages will appear here instantly
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" id="chatInput" placeholder="Type a message...">
+          <button class="send-btn" id="sendBtn" type="button">&#x27A4;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js" defer></script>
+</body>
+</html>

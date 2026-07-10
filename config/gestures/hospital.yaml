@@ -1,0 +1,49 @@
+name: hospital
+description: Hospital quick-communication profile for patient-to-caregiver conversations.
+
+gesture_to_intent:
+  HOLD: pause
+  WAVE: greeting
+  "YES": affirmative
+  "NO": negative
+  HELP: help
+  "THANK YOU": gratitude
+  STOP: stop
+  "COME HERE": request
+  DRINK: need_water
+  EAT: need_food
+  BATHROOM: need_bathroom
+
+intent_to_sentence:
+  pause: Please wait.
+  greeting: Hello.
+  affirmative: Yes.
+  negative: No.
+  help: I need help.
+  gratitude: Thank you.
+  stop: Please stop.
+  request: Come here.
+  need_help: I need help.
+  need_water: I need water.
+  need_food: I need food.
+  need_bathroom: I need the bathroom.
+
+gesture_sequences_to_intent:
+  HELP:
+    DRINK: need_water
+    EAT: need_food
+    BATHROOM: need_bathroom
+
+intent_sequences_to_sentence:
+  help:
+    need_water: I need water.
+    need_food: I need food.
+    need_bathroom: I need the bathroom.
+    affirmative: I understand.
+    negative: I cannot.
+  need_help:
+    need_water: I need water.
+    need_food: I need food.
+    need_bathroom: I need the bathroom.
+    affirmative: I understand.
+    negative: I cannot.

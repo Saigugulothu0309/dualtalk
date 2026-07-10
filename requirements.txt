@@ -1,0 +1,26 @@
+# Core
+mediapipe>=0.10.0
+opencv-python-headless>=4.8.0
+websockets>=12.0
+numpy>=1.24.0
+
+# Audio
+pyttsx3>=2.90
+SpeechRecognition>=3.10.0
+pyaudio>=0.2.13
+
+# Translation
+deep-translator>=1.11.0
+
+# Encryption
+cryptography>=41.0.0
+
+# ML / inference
+scikit-learn>=1.3.0
+
+# Config
+PyYAML
+python-dotenv>=1.0.0
+
+# Optional offline STT
+# vosk>=0.3.45

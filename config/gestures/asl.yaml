@@ -1,0 +1,13 @@
+language: asl
+
+gestures:
+  WAVE: greeting
+  HOLD: pause
+  YES: affirmative
+  NO: negative
+  HELP: help
+  "THANK YOU": gratitude
+  STOP: stop
+  "COME HERE": request
+  DRINK: need_water
+  EAT: need_food

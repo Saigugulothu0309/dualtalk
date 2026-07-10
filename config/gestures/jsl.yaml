@@ -1,0 +1,33 @@
+name: jsl
+description: General-purpose JSL communication profile with basic conversational intents.
+
+gesture_to_intent:
+  HOLD: pause
+  WAVE: greeting
+  "YES": affirmative
+  "NO": negative
+  HELP: help
+  "THANK YOU": gratitude
+  STOP: stop
+  "COME HERE": request
+
+intent_to_sentence:
+  pause: Please wait.
+  greeting: Hello.
+  affirmative: Yes.
+  negative: No.
+  help: I need help.
+  gratitude: Thank you.
+  stop: Please stop.
+  request: Come here.
+  need_help: I need help.
+
+gesture_sequences_to_intent: {}
+
+intent_sequences_to_sentence:
+  help:
+    affirmative: I understand.
+    negative: I cannot.
+  need_help:
+    affirmative: I understand.
+    negative: I cannot.
