@@ -3,6 +3,8 @@ mediapipe==0.10.9
 opencv-python-headless>=4.8.0
 websockets>=12.0
 numpy>=1.24.0
+fastapi>=0.100.0
+uvicorn>=0.23.0
 
 # Audio
 pyttsx3>=2.90
@@ -24,3 +26,5 @@ python-dotenv>=1.0.0
 
 # Optional offline STT
 # vosk>=0.3.45
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
