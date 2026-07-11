@@ -52,6 +52,7 @@ const captureCtx = captureCanvas.getContext("2d");
 let localStream = null;
 let captureInterval = null;
 let lastSpokenText = "";
+const RENDER_SOCKET_URL = "wss://dualtalk.onrender.com/ws";
 
 function selectRole(role) {
   state.selectedRole = role === "receiver" ? "receiver" : "signer";
@@ -130,11 +131,10 @@ function captureFrame() {
 function connectSocket() {
   let socketUrl = import.meta.env.VITE_WS_URL || "";
   if (!socketUrl) {
-    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
     if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-      socketUrl = "ws://localhost:8765";
+      socketUrl = "ws://localhost:8765/ws";
     } else {
-      socketUrl = `${protocol}://${window.location.host}/ws`;
+      socketUrl = RENDER_SOCKET_URL;
     }
   }
   

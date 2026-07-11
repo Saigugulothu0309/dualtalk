@@ -8,7 +8,7 @@ class DualTalkSessionStateTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.session = DualTalkSession(
             asyncio.get_running_loop(),
-            "ws://127.0.0.1:8765",
+            "ws://127.0.0.1:8765/ws",
         )
 
     async def asyncTearDown(self):

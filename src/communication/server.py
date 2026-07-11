@@ -10,7 +10,6 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
-from http import HTTPStatus
 from urllib.parse import urlparse
 
 import cv2
@@ -60,6 +59,7 @@ DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 8765
 DEFAULT_ROOM_PREFIX = "DT"
 DEFAULT_ROOM_DIGITS = 4
+WEBSOCKET_PATH = "/ws"
 
 # Initialize MediaPipe solutions and Model globally
 global_model = load_model()
@@ -171,6 +171,31 @@ class RoomState:
             "sentence": None,
             "placeholder": "Gesture recognition active - start signing..."
         }
+
+
+class ASGIWebSocketAdapter:
+    def __init__(self, websocket):
+        self._websocket = websocket
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        try:
+            return await self._websocket.receive_text()
+        except Exception as exc:
+            if exc.__class__.__name__ == "WebSocketDisconnect":
+                raise StopAsyncIteration from exc
+            raise
+
+    async def send(self, message):
+        if isinstance(message, bytes):
+            await self._websocket.send_bytes(message)
+            return
+        await self._websocket.send_text(message)
+
+    async def close(self, code=1000, reason=""):
+        await self._websocket.close(code=code, reason=reason)
 
 
 def process_frame_sync(session, base64_image):
@@ -795,37 +820,61 @@ class GestureServer:
         return "signer"
 
 
-async def run_server(host, port):
+def _origin_allowed(origin):
+    if os.environ.get("ENV") != "production" or not origin:
+        return True
+
+    parsed = urlparse(origin)
+    hostname = parsed.hostname
+    if not hostname:
+        return False
+
+    allowed_origin = os.environ.get("FRONTEND_URL")
+    if allowed_origin:
+        allowed_host = urlparse(allowed_origin).hostname
+        return hostname == allowed_host
+
+    return hostname in ("localhost", "127.0.0.1") or hostname.endswith(".vercel.app") or hostname == "vercel.app"
+
+
+def create_app():
+    try:
+        from fastapi import FastAPI, WebSocket, status
+        from fastapi.responses import PlainTextResponse, Response
+    except ImportError as exc:
+        raise SystemExit(
+            "Missing dependency: install it with `pip install fastapi uvicorn`."
+        ) from exc
+
     server = GestureServer()
-    
-    async def process_request(path, headers):
-        if os.environ.get("ENV") == "production":
-            origin = headers.get("Origin")
-            if origin:
-                parsed = urlparse(origin)
-                hostname = parsed.hostname
-                allowed_origin = os.environ.get("FRONTEND_URL")
-                if allowed_origin:
-                    allowed_host = urlparse(allowed_origin).hostname
-                    if hostname != allowed_host:
-                        return HTTPStatus.FORBIDDEN, [], b"Forbidden"
-                else:
-                    if hostname not in ("localhost", "127.0.0.1") and not (hostname.endswith(".vercel.app") or hostname == "vercel.app"):
-                        return HTTPStatus.FORBIDDEN, [], b"Forbidden"
-        return None
+    app = FastAPI(docs_url=None, redoc_url=None)
 
-    async with websockets.serve(
-        server.handle_client,
-        host,
-        port,
-        process_request=process_request,
-        compression=None,
-        ping_interval=20,
-        ping_timeout=20,
-    ):
-        print(f"Gesture WebSocket server running at ws://{host}:{port}")
-        await asyncio.Future()
+    @app.get("/", include_in_schema=False)
+    async def root():
+        return PlainTextResponse("ok")
 
+    @app.head("/", include_in_schema=False)
+    async def root_head():
+        return Response(status_code=200)
+
+    @app.get("/health", include_in_schema=False)
+    async def health():
+        return PlainTextResponse("ok")
+
+    @app.head("/health", include_in_schema=False)
+    async def health_head():
+        return Response(status_code=200)
+
+    @app.websocket(WEBSOCKET_PATH)
+    async def websocket_endpoint(websocket: WebSocket):
+        if not _origin_allowed(websocket.headers.get("origin")):
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Forbidden")
+            return
+
+        await websocket.accept()
+        await server.handle_client(ASGIWebSocketAdapter(websocket), WEBSOCKET_PATH)
+
+    return app
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run the DualTalk gesture text server.")
@@ -835,9 +884,24 @@ def parse_args():
 
 
 def main():
+    try:
+        import uvicorn
+    except ImportError as exc:
+        raise SystemExit(
+            "Missing dependency: install it with `pip install uvicorn`."
+        ) from exc
+
     args = parse_args()
     port = int(os.environ.get("WS_PORT", args.port))
-    asyncio.run(run_server(args.host, port))
+    app = create_app()
+    print(f"DualTalk server listening on http://{args.host}:{port} with WebSocket endpoint {WEBSOCKET_PATH}")
+    uvicorn.run(
+        app,
+        host=args.host,
+        port=port,
+        ws_ping_interval=20.0,
+        ws_ping_timeout=20.0,
+    )
 
 
 if __name__ == "__main__":

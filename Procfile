@@ -1,1 +1,1 @@
-web: python run.py server
+web: uvicorn asgi:app --host 0.0.0.0 --port $PORT
