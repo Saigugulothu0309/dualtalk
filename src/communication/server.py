@@ -15,7 +15,26 @@ from urllib.parse import urlparse
 
 import cv2
 import numpy as np
-import mediapipe as mp
+try:
+    import mediapipe as mp
+    print("DEBUG: Successfully executed 'import mediapipe as mp'", flush=True)
+    print(f"DEBUG: mp.__file__: {getattr(mp, '__file__', 'No __file__')}", flush=True)
+    print(f"DEBUG: mp.__version__: {getattr(mp, '__version__', 'No __version__')}", flush=True)
+    print(f"DEBUG: hasattr(mp, 'solutions'): {hasattr(mp, 'solutions')}", flush=True)
+    print(f"DEBUG: dir(mp): {dir(mp)}", flush=True)
+    print(f"DEBUG: sys.path: {sys.path}", flush=True)
+    
+    try:
+        from mediapipe.python import solutions
+        print("DEBUG: Successfully executed 'from mediapipe.python import solutions'", flush=True)
+    except Exception as e:
+        print(f"DEBUG: Failed to import mediapipe.python.solutions: {type(e).__name__}: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
+except Exception as e:
+    print(f"DEBUG: Failed to import mediapipe: {type(e).__name__}: {e}", flush=True)
+    import traceback
+    traceback.print_exc()
 
 try:
     import websockets
@@ -44,7 +63,17 @@ DEFAULT_ROOM_DIGITS = 4
 
 # Initialize MediaPipe solutions and Model globally
 global_model = load_model()
-mp_hands = mp.solutions.hands
+
+try:
+    print("DEBUG: Attempting mp.solutions.hands", flush=True)
+    mp_hands = mp.solutions.hands
+    print("DEBUG: Successfully got mp.solutions.hands", flush=True)
+except Exception as e:
+    print(f"DEBUG: Failed on mp.solutions.hands: {type(e).__name__}: {e}", flush=True)
+    import traceback
+    traceback.print_exc()
+    raise e
+
 mp_draw = mp.solutions.drawing_utils
 
 # Create thread pool executor for processing frame images
