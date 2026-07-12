@@ -1,7 +1,10 @@
 import asyncio
 import unittest
 
-from src.web.app import DualTalkSession
+import cv2
+import numpy as np
+
+from src.web.app import DualTalkSession, encode_jpeg
 
 
 class DualTalkSessionStateTests(unittest.IsolatedAsyncioTestCase):
@@ -37,6 +40,16 @@ class DualTalkSessionStateTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.session.get_resume_room_code(), "DT-4821")
         self.assertTrue(snapshot["status"]["connected"])
         self.assertEqual(snapshot["role"], "receiver")
+
+    def test_encode_jpeg_scales_to_pilot_frame_size(self):
+        frame = np.zeros((900, 1200, 3), dtype=np.uint8)
+
+        encoded = encode_jpeg(frame)
+        self.assertIsNotNone(encoded)
+
+        decoded = cv2.imdecode(np.frombuffer(encoded, np.uint8), cv2.IMREAD_COLOR)
+        self.assertEqual(decoded.shape[0], 480)
+        self.assertEqual(decoded.shape[1], 640)
 
 
 if __name__ == "__main__":

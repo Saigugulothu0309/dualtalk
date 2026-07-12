@@ -19,6 +19,12 @@
   --success: #22c55e;
 }
 
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   font-family: "Segoe UI", system-ui, sans-serif;
   background: var(--bg);
@@ -252,6 +258,8 @@ input[type="text"]::placeholder {
   flex: 1;
   display: none;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .room-header {
@@ -302,8 +310,9 @@ input[type="text"]::placeholder {
 .room-body {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 360px;
+  grid-template-columns: minmax(0, 1fr) 360px;
   overflow: hidden;
+  min-height: 0;
   height: calc(100vh - 120px);
 }
 
@@ -314,13 +323,15 @@ input[type="text"]::placeholder {
   gap: 12px;
   background: var(--bg);
   overflow: hidden;
+  min-height: 0;
 }
 
 .cameras-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
   flex: 1;
+  min-height: 0;
 }
 
 .camera-box {
@@ -474,6 +485,8 @@ input[type="text"]::placeholder {
   flex-direction: column;
   border-left: 1px solid var(--border);
   background: var(--surface);
+  min-height: 0;
+  overflow: hidden;
 }
 
 .chat-header {
@@ -488,11 +501,13 @@ input[type="text"]::placeholder {
 
 .messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overscroll-behavior: contain;
 }
 
 .messages::-webkit-scrollbar {
@@ -582,6 +597,7 @@ input[type="text"]::placeholder {
   border-top: 1px solid var(--border);
   display: flex;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .chat-input {

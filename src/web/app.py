@@ -49,7 +49,7 @@ DEFAULT_API_HOST = "127.0.0.1"
 DEFAULT_API_PORT = 8766
 DEFAULT_SERVER_URL = str(config_get("server.url", "ws://127.0.0.1:8765"))
 DEFAULT_REMOTE_FRAME_TIMEOUT_SECONDS = 2.5
-DEFAULT_VIDEO_FRAME_INTERVAL_SECONDS = 0.35
+DEFAULT_VIDEO_FRAME_INTERVAL_SECONDS = 0.08
 DEFAULT_CAMERA_IDLE_SLEEP_SECONDS = 0.08
 DEFAULT_CAMERA_RETRY_DELAY_SECONDS = float(
     config_get("camera.retry_delay_seconds", 1.5)
@@ -123,7 +123,7 @@ def parse_state_update_message(payload):
     }
 
 
-def encode_jpeg(frame, *, target_width=960, target_height=540, quality=80):
+def encode_jpeg(frame, *, target_width=640, target_height=480, quality=72):
     if frame is None:
         return None
     resized = resize_frame_to_fit(frame, target_width, target_height)
@@ -192,7 +192,7 @@ class DualTalkSession:
         self.server_url = server_url
         self.ui_session_id = str(ui_session_id or uuid.uuid4().hex)
         self.crypto = crypto
-        self.outgoing_queue = asyncio.Queue(maxsize=256)
+        self.outgoing_queue = asyncio.Queue(maxsize=8)
         self.stop_event = asyncio.Event()
         self.remote_cleanup_task = None
         self.communication_task = None
@@ -270,7 +270,7 @@ class DualTalkSession:
                     compression=None,
                     ping_interval=20,
                     ping_timeout=20,
-                    max_queue=8,
+                    max_queue=2,
                 ) as websocket:
                     self._set_server_connected(True)
                     await websocket.send(
@@ -492,7 +492,7 @@ class DualTalkSession:
 
         def _enqueue():
             payload_type = payload.get("type") if isinstance(payload, dict) else None
-            if self.outgoing_queue.full() and payload_type == "video_frame":
+            if payload_type == "video_frame" and self.outgoing_queue.full():
                 return
             try:
                 self.outgoing_queue.put_nowait(payload)

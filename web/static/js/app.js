@@ -3,6 +3,8 @@ const state = {
   socket: null,
   apiConfig: null,
   snapshot: null,
+  speechReady: false,
+  lastSpokenKey: null,
 };
 
 const elements = {
@@ -43,6 +45,50 @@ function selectRole(role) {
   state.selectedRole = role === "receiver" ? "receiver" : "signer";
   elements.roleSignerBtn.classList.toggle("active", state.selectedRole === "signer");
   elements.roleReceiverBtn.classList.toggle("active", state.selectedRole === "receiver");
+}
+
+function ensureSpeechSupport() {
+  if (typeof window === "undefined" || !window.speechSynthesis) {
+    return false;
+  }
+  if (!state.speechReady) {
+    state.speechReady = true;
+    document.addEventListener(
+      "pointerdown",
+      () => {
+        try {
+          window.speechSynthesis.resume?.();
+        } catch (error) {
+          // Ignore browser resume errors.
+        }
+      },
+      { once: true }
+    );
+  }
+  return true;
+}
+
+function speakText(text) {
+  const snapshot = state.snapshot || {};
+  if (!text || typeof text !== "string" || !snapshot.speech_on) {
+    return;
+  }
+  if (!ensureSpeechSupport()) {
+    return;
+  }
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    utterance.onerror = () => {};
+    window.speechSynthesis.speak(utterance);
+  } catch (error) {
+    console.warn("Speech synthesis unavailable:", error);
+    showToast("Speech playback was blocked by the browser. Click once and try again.", "error");
+  }
 }
 
 function apiReady() {
@@ -86,6 +132,12 @@ function connectSocket() {
 
     if (payload.type === "toast") {
       showToast(payload.message, payload.level);
+      return;
+    }
+
+    if (payload.type === "speak" && payload.text) {
+      speakText(payload.text);
+      return;
     }
   });
 
@@ -142,6 +194,13 @@ function render() {
 
   elements.speechBtn.classList.toggle("active", snapshot.speech_on);
   elements.speechBtn.textContent = snapshot.speech_on ? "Speech On" : "Speech";
+  if (!snapshot.speech_on) {
+    try {
+      window.speechSynthesis?.cancel();
+    } catch (error) {
+      // Ignore speech cancellation errors.
+    }
+  }
   elements.camBtn.classList.toggle("active", snapshot.camera_on);
   elements.camBtn.textContent = snapshot.camera_on ? "Camera" : "Cam Off";
   elements.aiBtn.classList.toggle("active", snapshot.ai_on);
@@ -212,6 +271,13 @@ function renderMessages(messages) {
       `;
     })
     .join("");
+
+  const latestMessage = messages[messages.length - 1];
+  const messageKey = `${latestMessage?.direction || ""}:${latestMessage?.source || ""}:${latestMessage?.text || ""}:${latestMessage?.time || ""}`;
+  if (latestMessage && latestMessage.direction === "received" && latestMessage.source === "translation" && messageKey !== state.lastSpokenKey && state.snapshot?.speech_on) {
+    state.lastSpokenKey = messageKey;
+    speakText(latestMessage.text);
+  }
 
   const isNearBottom = previousHeight - previousTop - elements.messages.clientHeight < 80;
   if (isNearBottom) {
