@@ -1,15 +1,17 @@
-name: hospital
-description: Hospital quick-communication profile for patient-to-caregiver conversations.
+name: school
+description: School quick-communication profile for classroom and campus needs.
 
 gesture_to_intent:
   HOLD: pause
   WAVE: greeting
-  "YES": affirmative
-  "NO": negative
+  YES: affirmative
+  NO: negative
   HELP: help
-  "THANK YOU": gratitude
+  ME: need_help
+  WAIT: pause
+  THANKS: gratitude
   STOP: stop
-  "COME HERE": request
+  COME HERE: request
   DRINK: need_water
   EAT: need_food
   BATHROOM: need_bathroom
@@ -24,9 +26,9 @@ intent_to_sentence:
   stop: Please stop.
   request: Come here.
   need_help: I need help.
-  need_water: I need water.
-  need_food: I need food.
-  need_bathroom: I need the bathroom.
+  need_water: I need a drink.
+  need_food: I need something to eat.
+  need_bathroom: I need to use the bathroom.
 
 gesture_sequences_to_intent:
   HELP:
@@ -36,13 +38,13 @@ gesture_sequences_to_intent:
 
 intent_sequences_to_sentence:
   help:
-    need_water: I need some water.
+    need_water: I need a drink.
     need_food: I need something to eat.
-    need_bathroom: I need the bathroom.
+    need_bathroom: I need to use the bathroom.
     affirmative: I understand.
     negative: I cannot.
   need_help:
-    need_water: I need some water.
+    need_water: I need a drink.
     need_food: I need something to eat.
     need_bathroom: I need to use the bathroom.
     affirmative: I understand.
@@ -50,7 +52,7 @@ intent_sequences_to_sentence:
 
 vocabulary:
   help: help
-  need_water: water
+  need_water: drink
   need_food: food
   need_bathroom: bathroom
   affirmative: yes
@@ -58,7 +60,7 @@ vocabulary:
   gratitude: thank you
 
 sentence_templates:
-  need_water: I need some water.
+  need_water: I need a drink.
   need_food: I need something to eat.
   need_bathroom: I need to use the bathroom.
   affirmative gratitude: Yes, thank you.

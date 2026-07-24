@@ -27,6 +27,9 @@ DEFAULT_PROFILE_DATA = {
         "YES": "affirmative",
         "NO": "negative",
         "HELP": "help",
+        "ME": "need_help",
+        "WAIT": "pause",
+        "THANKS": "gratitude",
         "THANK YOU": "gratitude",
         "STOP": "stop",
         "COME HERE": "request",
@@ -57,19 +60,44 @@ DEFAULT_PROFILE_DATA = {
     },
     "intent_sequences_to_sentence": {
         "help": {
-            "need_water": "I need water.",
-            "need_food": "I need food.",
+            "need_water": "I need some water.",
+            "need_food": "I need something to eat.",
             "need_bathroom": "I need the bathroom.",
             "affirmative": "I understand.",
             "negative": "I cannot.",
         },
         "need_help": {
-            "need_water": "I need water.",
-            "need_food": "I need food.",
-            "need_bathroom": "I need the bathroom.",
+            "need_water": "I need some water.",
+            "need_food": "I need something to eat.",
+            "need_bathroom": "I need to use the bathroom.",
             "affirmative": "I understand.",
             "negative": "I cannot.",
         }
+    },
+    "vocabulary": {
+        "help": "help",
+        "need_water": "water",
+        "need_food": "food",
+        "need_bathroom": "bathroom",
+        "affirmative": "yes",
+        "negative": "no",
+        "gratitude": "thank you",
+    },
+    "sentence_templates": {
+        "need_water": "I need some water.",
+        "need_food": "I need something to eat.",
+        "need_bathroom": "I need to use the bathroom.",
+        "affirmative gratitude": "Yes, thank you.",
+        "pause": "Please wait for a moment.",
+    },
+    "polite_responses": {
+        "gratitude": "Thank you.",
+        "affirmative": "Yes, thank you.",
+        "negative": "No, thank you.",
+    },
+    "emergency_phrases": {
+        "emergency": "This is an emergency.",
+        "help": "I need help.",
     },
 }
 PROFILE_SECTION_KEYS = {
@@ -77,6 +105,10 @@ PROFILE_SECTION_KEYS = {
     "intent_to_sentence",
     "gesture_sequences_to_intent",
     "intent_sequences_to_sentence",
+    "vocabulary",
+    "sentence_templates",
+    "polite_responses",
+    "emergency_phrases",
     "no_hand_gestures",
     "unstable_gestures",
 }
@@ -90,6 +122,10 @@ class GestureProfile:
     intent_to_sentence: dict[str, str]
     gesture_sequences_to_intent: dict[tuple[str, str], str]
     intent_sequences_to_sentence: dict[tuple[str, str], str]
+    vocabulary: dict[str, str]
+    sentence_templates: dict[str, str]
+    polite_responses: dict[str, str]
+    emergency_phrases: dict[str, str]
     no_hand_gestures: frozenset[str]
     unstable_gestures: frozenset[str]
 
@@ -268,6 +304,22 @@ def _build_profile(profile_name: str | None, profiles_dir: str | None) -> Gestur
             inner_case="lower",
             value_case="keep",
         ),
+        vocabulary=_normalize_mapping(
+            merged_profile.get("vocabulary"),
+            key_case="lower",
+        ),
+        sentence_templates=_normalize_mapping(
+            merged_profile.get("sentence_templates"),
+            key_case="lower",
+        ),
+        polite_responses=_normalize_mapping(
+            merged_profile.get("polite_responses"),
+            key_case="lower",
+        ),
+        emergency_phrases=_normalize_mapping(
+            merged_profile.get("emergency_phrases"),
+            key_case="lower",
+        ),
         no_hand_gestures=_normalize_set(
             merged_profile.get("no_hand_gestures", DEFAULT_NO_HAND_GESTURES),
             case="upper",
@@ -279,6 +331,24 @@ def _build_profile(profile_name: str | None, profiles_dir: str | None) -> Gestur
         )
         or DEFAULT_UNSTABLE_GESTURES,
     )
+
+
+def _normalize_mapping(raw_mapping, *, key_case: str = "lower") -> dict[str, str]:
+    if not isinstance(raw_mapping, dict):
+        return {}
+
+    normalized = {}
+    for key, value in raw_mapping.items():
+        if key is None or value is None:
+            continue
+        normalized_key = str(key).strip()
+        normalized_key = (
+            normalized_key.upper() if key_case == "upper" else normalized_key.lower()
+        )
+        normalized_value = str(value).strip()
+        if normalized_key and normalized_value:
+            normalized[normalized_key] = normalized_value
+    return normalized
 
 
 @lru_cache(maxsize=16)

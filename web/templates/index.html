@@ -8,7 +8,11 @@
 </head>
 <body>
   <header>
-    <div class="logo">Dual<span>Talk</span></div>
+    <div class="logo">🤟 Dual<span>Talk</span></div>
+    <nav class="top-nav" aria-label="Primary navigation">
+      <a href="#lobby">Home</a><a href="#how-it-works">How It Works</a><a href="#features">Features</a>
+      <button class="nav-link" id="helpBtn" type="button">Help</button><button class="nav-link" type="button">Settings</button>
+    </nav>
     <div id="statusPill" class="status-pill offline">
       <span class="dot"></span>
       <span id="statusText">Not connected</span>
@@ -16,7 +20,14 @@
   </header>
 
   <div id="lobby">
-    <div class="lobby-card">
+    <section class="hero" id="features">
+      <p class="eyebrow">PRIVATE • REAL-TIME • HUMAN-CENTERED</p>
+      <h1>Communication without barriers.</h1>
+      <p>DualTalk connects Indian Sign Language users and hearing individuals with computer vision, AI, NLP and speech technology.</p>
+      <div class="badges"><span>✓ Real-Time Translation</span><span>✓ AI Powered</span><span>✓ Multi-Language Ready</span><span>✓ Privacy First</span><span>✓ Low Latency</span></div>
+    </section>
+    <div class="room-options">
+    <div class="lobby-card room-card">
       <div class="lobby-icon">&#x1F91F;</div>
       <h1>Join a DualTalk Room</h1>
       <p>Connect with another person using a room code. Choose your role - signer or receiver.</p>
@@ -44,6 +55,9 @@
 
       <button class="btn btn-secondary" id="createRoomBtn" type="button">Create New Room</button>
     </div>
+    <div class="lobby-card info-card"><span class="card-icon">🔒</span><h2>Secure rooms, simple starts.</h2><p>Conversation state exists only while your room is active. No recordings. No stored conversations.</p><div class="trust-row"><span>● Offline-first</span><span>● Encrypted transport</span></div></div>
+    </div>
+    <section class="how-it-works" id="how-it-works"><h2>How DualTalk works</h2><div class="steps"><div><b>01</b><span>Create or join a room</span></div><div><b>02</b><span>Enable your camera</span></div><div><b>03</b><span>Start signing</span></div><div><b>04</b><span>AI recognizes signs</span></div><div><b>05</b><span>NLP creates a sentence</span></div><div><b>06</b><span>Your partner reads and hears</span></div></div></section>
   </div>
 
   <div id="room">
@@ -56,6 +70,8 @@
         </button>
       </div>
       <div class="controls">
+        <label class="room-select">Language <select id="conversationLanguage"><option>English</option><option>Hindi</option><option>తెలుగు</option><option>ಕನ್ನಡ</option></select></label>
+        <label class="room-select">Profile <select id="conversationProfile"><option>General</option><option>Hospital</option><option>Education</option><option>Government</option><option>Family</option></select></label>
         <button class="ctrl-btn" id="speechBtn" type="button">Speech</button>
         <button class="ctrl-btn active" id="camBtn" type="button">Camera</button>
         <button class="ctrl-btn active" id="aiBtn" type="button">AI On</button>
@@ -105,6 +121,7 @@
               <span class="step-value" id="sentenceOutput">Gesture recognition active - start signing...</span>
             </div>
           </div>
+          <div class="suggestions" id="suggestions" aria-live="polite"></div>
         </div>
       </div>
 
@@ -123,6 +140,8 @@
       </div>
     </div>
   </div>
+
+  <div class="help-modal" id="helpModal" hidden><div class="help-dialog" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><button class="modal-close" id="closeHelpBtn" type="button" aria-label="Close help">×</button><h2 id="helpTitle">DualTalk Help</h2><input id="helpSearch" type="search" placeholder="Search the guide…" aria-label="Search help"><div class="help-grid"><article><h3>Quick start</h3><p>Create or join a room, choose your role, enable camera, then hold each gesture steady in frame.</p></article><article><h3>Privacy</h3><p>Room context is cleared when the session ends. DualTalk does not store video or conversation history.</p></article><article><h3>Better recognition</h3><p>Use good lighting, keep your hand visible, and pause briefly between gestures.</p></article><article><h3>Supported gestures</h3><p>HELLO · YES · NO · HELP · WATER · FOOD · MEDICINE · PAIN · DOCTOR · THANK YOU · PLEASE · STOP · EMERGENCY</p></article></div></div></div>
 
   <script src="/static/js/app.js" defer></script>
 </body>

@@ -51,8 +51,12 @@ from src.communication.sender import (
     clear_stale_hand_state,
     get_hand_label_and_score
 )
+from src.config import get as config_get
+from src.processing.conversation_context import ConversationContext
 from src.processing.placement_engine import detect_zone
+from src.processing.prompt_builder import NLPProcessor, PromptBuilder
 from src.processing.smart_sentence_builder import SmartSentenceBuilder
+from src.processing.adaptive_engine import AdaptiveEngine
 
 # Global configurations
 DEFAULT_HOST = "0.0.0.0"
@@ -161,7 +165,7 @@ class ClientSession:
 
 
 class RoomState:
-    def __init__(self, room_code):
+    def __init__(self, room_code, profile_name=None):
         self.room_code = room_code
         self.members = set()  # set of ClientSessions
         self.messages = []    # list of message dictionaries
@@ -169,8 +173,15 @@ class RoomState:
             "gesture": None,
             "intent": None,
             "sentence": None,
+            "suggestions": [],
             "placeholder": "Gesture recognition active - start signing..."
         }
+        self.context = ConversationContext(room_code=room_code)
+        self.prompt_builder = PromptBuilder(
+            profile_name=profile_name or config_get("gestures.profile", "hospital")
+        )
+        self.nlp_processor = NLPProcessor(self.prompt_builder)
+        self.adaptive = AdaptiveEngine(profile_name or config_get("gestures.profile", "general"), room_code)
 
 
 class ASGIWebSocketAdapter:
@@ -398,7 +409,10 @@ class GestureServer:
         await self._remove_from_room(session)
         
         room_code = self._generate_room_code()
-        room = RoomState(room_code)
+        room = RoomState(
+            room_code,
+            profile_name=config_get("gestures.profile", "hospital"),
+        )
         self.rooms[room_code] = room
         
         session.room_code = room_code
@@ -533,6 +547,7 @@ class GestureServer:
             )
             
             if not room.members:
+                room.context.clear()
                 self.rooms.pop(room_code, None)
                 
         session.room_code = None
@@ -637,12 +652,31 @@ class GestureServer:
             # Handle translation update if AI was processing and returned something
             if gesture_info:
                 detected_gesture, intent_detected, sentence_built = gesture_info
-                
+                normalized_intent = (
+                    intent_detected if intent_detected and intent_detected != "-" else None
+                )
+                natural_sentence = None
+                if room and sentence_built:
+                    natural_sentence = room.nlp_processor.process(
+                        normalized_intent,
+                        sentence_built,
+                        room.context,
+                    )
+                    if not natural_sentence:
+                        natural_sentence = sentence_built
+                    room.context.add_entry(normalized_intent, natural_sentence)
+                    room.adaptive.record(natural_sentence)
+                    suggestions = room.adaptive.suggestions(
+                        gesture=detected_gesture,
+                        intent=normalized_intent,
+                        sentence=natural_sentence,
+                    )
+
                 if room:
                     if sentence_built:
                         msg = {
                             "sender_id": session.client_id,
-                            "text": sentence_built,
+                            "text": natural_sentence,
                             "time": datetime.now().strftime("%H:%M"),
                             "source": "translation"
                         }
@@ -652,19 +686,20 @@ class GestureServer:
                             if member != session and member.speech_on:
                                 await member.websocket.send(json.dumps({
                                     "type": "speak",
-                                    "text": sentence_built
+                                    "text": natural_sentence
                                 }))
                                 
                         room.translation = {
                             "gesture": detected_gesture,
-                            "intent": intent_detected if intent_detected != "-" else None,
-                            "sentence": sentence_built,
+                            "intent": normalized_intent,
+                            "sentence": natural_sentence,
+                            "suggestions": suggestions,
                             "placeholder": None
                         }
                         await self.broadcast_room_snapshot(room)
                     elif detected_gesture:
                         room.translation["gesture"] = detected_gesture
-                        room.translation["intent"] = intent_detected if intent_detected != "-" else None
+                        room.translation["intent"] = normalized_intent
                         room.translation["placeholder"] = None
                         await self.broadcast_room_snapshot(room)
         except Exception as e:
@@ -717,6 +752,7 @@ class GestureServer:
                 "gesture": None,
                 "intent": None,
                 "sentence": None,
+                "suggestions": [],
                 "placeholder": "Join a room to start signing."
             },
             "messages": []

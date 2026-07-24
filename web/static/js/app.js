@@ -39,7 +39,27 @@ const elements = {
   gestureOutput: document.getElementById("gestureOutput"),
   intentOutput: document.getElementById("intentOutput"),
   sentenceOutput: document.getElementById("sentenceOutput"),
+  suggestions: document.getElementById("suggestions"),
+  helpBtn: document.getElementById("helpBtn"),
+  helpModal: document.getElementById("helpModal"),
+  closeHelpBtn: document.getElementById("closeHelpBtn"),
+  helpSearch: document.getElementById("helpSearch"),
 };
+
+function toggleHelp(open) {
+  if (!elements.helpModal) return;
+  elements.helpModal.hidden = !open;
+  if (open) elements.helpSearch?.focus();
+}
+
+elements.helpBtn?.addEventListener("click", () => toggleHelp(true));
+elements.closeHelpBtn?.addEventListener("click", () => toggleHelp(false));
+elements.helpModal?.addEventListener("click", (event) => { if (event.target === elements.helpModal) toggleHelp(false); });
+document.addEventListener("keydown", (event) => { if (event.key === "Escape") toggleHelp(false); });
+elements.helpSearch?.addEventListener("input", () => {
+  const query = elements.helpSearch.value.toLowerCase();
+  elements.helpModal.querySelectorAll("article").forEach((card) => { card.hidden = query && !card.textContent.toLowerCase().includes(query); });
+});
 
 function selectRole(role) {
   state.selectedRole = role === "receiver" ? "receiver" : "signer";
@@ -241,6 +261,17 @@ function renderTranslation(translation) {
   elements.gestureOutput.classList.toggle("placeholder", !translation.gesture);
   elements.intentOutput.classList.toggle("placeholder", !translation.intent);
   elements.sentenceOutput.classList.toggle("placeholder", !translation.sentence);
+  if (elements.suggestions) {
+    elements.suggestions.innerHTML = (translation.suggestions || []).map((item) =>
+      `<button type="button" class="suggestion" data-suggestion="${escapeHtml(item)}">${escapeHtml(item)}</button>`
+    ).join("");
+    elements.suggestions.querySelectorAll(".suggestion").forEach((button) => {
+      button.addEventListener("click", () => {
+        elements.chatInput.value = button.dataset.suggestion || "";
+        elements.chatInput.focus();
+      });
+    });
+  }
 }
 
 function renderMessages(messages) {
